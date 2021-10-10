@@ -1,4 +1,5 @@
 <?php
+
 namespace frontend\controllers;
 
 use Yii;
@@ -18,7 +19,7 @@ class PaymentController extends Controller
 
     protected $merchant;
 
-  /*public function actionInvoice()
+    /*public function actionInvoice()
     {
         $model = new Invoice();
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
@@ -51,52 +52,50 @@ class PaymentController extends Controller
     public function payCallback(\nikitakls\unitpay\ResultParam $param)
     {
 
-              //$this->loadModel($nInvId)->updateAttributes(['status' => Invoice::STATUS_ACCEPTED]);
+        //$this->loadModel($nInvId)->updateAttributes(['status' => Invoice::STATUS_ACCEPTED]);
 
-             $nInvId=$param->getOrderId();
-             $order = Order::findOne($nInvId)->updateAttributes(['order_status_id' => 4]);
-             $order=Order::findOne($nInvId);
-            $content = $this->renderPartial('@frontend/modules/user/views/default/usertickets', ['order' => $order]);
-            $mpdf = new mPDF([
-	'default_font_size' => 9,
-	'default_font' => 'dejavusans',
-  'orientation' => 'P',
-                'sheet-size'=>'A4'
-]);
-            $mpdf->WriteHTML($content); //pdf is a name of view file responsible for this pdf document
-            $path = $mpdf->Output('', 'S');
+        $nInvId = $param->getOrderId();
+        $order = Order::findOne($nInvId)->updateAttributes(['order_status_id' => 4]);
+        $order = Order::findOne($nInvId);
+        $content = $this->renderPartial('@frontend/modules/user/views/default/usertickets', ['order' => $order]);
+        $mpdf = new mPDF([
+            'default_font_size' => 9,
+            'default_font' => 'dejavusans',
+            'orientation' => 'P',
+            'sheet-size' => 'A4'
+        ]);
+        $mpdf->WriteHTML($content); //pdf is a name of view file responsible for this pdf document
+        $path = $mpdf->Output('', 'S');
 
-//$signer = new \Swift_Signers_DKIMSigner($dkim_private_key, $dkim_domain, $dkim_selector);
+        //$signer = new \Swift_Signers_DKIMSigner($dkim_private_key, $dkim_domain, $dkim_selector);
 
-            $send=\Yii::$app->mailer->compose()
-               ->setFrom([\Yii::$app->params['robotEmail'] => \Yii::$app->name])
-               ->setTo($order->getUser()->one()->email)
-               ->setSubject('Билеты от CultPohod.com')
-               ->setTextBody('Билеты в приложении')
-               ->attachContent($path, ['fileName' => 'tickets.pdf',   'contentType' => 'application/pdf']);
-               //->send();
-            //   $send->getSwiftMessage()->attachSigner($signer);
+        $send = \Yii::$app->mailer->compose()
+            ->setFrom([\Yii::$app->params['robotEmail'] => \Yii::$app->name])
+            ->setTo($order->getUser()->one()->email)
+            ->setSubject('Билеты от CultPohod.com')
+            ->setTextBody('Билеты в приложении')
+            ->attachContent($path, ['fileName' => 'tickets.pdf',   'contentType' => 'application/pdf']);
+        //->send();
+        //   $send->getSwiftMessage()->attachSigner($signer);
 
-$send->send();
+        $send->send();
 
-              return Yii::$app->get('unitpay')->getSuccessResponse('Pay Success');
-
-
+        return Yii::$app->get('unitpay')->getSuccessResponse('Pay Success');
     }
 
     public function checkCallback(\nikitakls\unitpay\ResultParam $param)
     {
-                $nInvId=$param->getOrderId();
-                if(Order::findOne($nInvId)){
-                    return Yii::$app->get('unitpay')->getSuccessResponse('Check Success. Ready to pay.');
-                };
-                return Yii::$app->get('unitpay')->getErrorResponse('Message about error');
+        $nInvId = $param->getOrderId();
+        if (Order::findOne($nInvId)) {
+            return Yii::$app->get('unitpay')->getSuccessResponse('Check Success. Ready to pay.');
+        };
+        return Yii::$app->get('unitpay')->getErrorResponse('Message about error');
     }
 
     public function failCallback(\nikitakls\unitpay\ResultParam $param)
     {
-    //  $nInvId=$param->getOrderId();
-    //  $order = Order::findOne($nInvId)->updateAttributes(['order_status_id' => 4]);
-                return Yii::$app->get('unitpay')->getSuccessHandlerResponse('Error logged');
+        //  $nInvId=$param->getOrderId();
+        //  $order = Order::findOne($nInvId)->updateAttributes(['order_status_id' => 4]);
+        return Yii::$app->get('unitpay')->getSuccessHandlerResponse('Error logged');
     }
 }
